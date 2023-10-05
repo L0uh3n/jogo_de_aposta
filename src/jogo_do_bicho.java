@@ -144,21 +144,27 @@ public class jogo_do_bicho {
                 System.out.print("\n> Digite o número que você deseja apostar\n--> ");
                 numero = input.nextInt();
 
-                for (int i = 0; i < 5; i++) {
-                    for (int j = 0; j < 5; j++) {
-                        if (numero == cartela[i][j]) {
-                            cartela[i][j] = 0;
-                            return numero;
-                        } else {
-                            verificador = -1;
+                if (numero < 0 || numero > 25) {
+                    System.out.println("\n> Operaçao falhou! Digite apenas números presentes na cartela.");
+                } else {
+                    for (int i = 0; i < 5; i++) {
+                        for (int j = 0; j < 5; j++) {
+                            if (numero == 0) {
+                                verificador = 0;
+                            } else if (numero == cartela[i][j]) {
+                                cartela[i][j] = 0;
+                                return numero;
+                            } else {
+                                verificador = -1;
+                            }
                         }
                     }
                 }
-                
-                if (numero <= 0 || numero > 25) {
-                    System.out.println("\n> Operaçao falhou! Digite apenas números presentes na cartela.");
-                } else if (verificador == -1) {
+
+                if (verificador == -1) {
                     System.out.println("\n> Operaçao falhou! Esse numero já foi escolhido.");
+                } else if (verificador == 0 ) {
+                    System.out.println("\n> Operaçao falhou! Digite apenas números presentes na cartela.");
                 }
 
             } catch (Exception e) {
