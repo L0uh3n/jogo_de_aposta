@@ -1,8 +1,15 @@
 import java.util.Scanner;
 import java.io.IOException;
 import java.lang.Thread;
+import java.awt.Desktop;
+import java.net.URI;
 
 public class jogo_do_bicho {
+    // backup da tabela principal para comparar as posições com a original:
+    public static final String[][] CARTELABACKUP = { { "1", "2", "3", "4", "5" }, { "6", "7", "8", "9", "10" },
+            { "11", "12", "13", "14", "15" }, { "16", "17", "18", "19", "20" },
+            { "21", "22", "23", "24", "25" } };
+
     // função para "limpar" o console;
     public static void limparConsole() throws IOException, InterruptedException {
         try {
@@ -14,7 +21,7 @@ public class jogo_do_bicho {
     }
 
     // simula o system("pause") do C/C++:
-    static void systemPause() throws Exception {
+    public static void systemPause() throws Exception {
         System.out.print("\n> Digite qualquer tecla para voltar para o menu principal\n--> ");
         System.in.read();
         limparConsole();
@@ -74,7 +81,14 @@ public class jogo_do_bicho {
     }
 
     // função de apostar:
-    public static int apostar(int[][] cartela, long[][] relatorio, int cont) throws Exception {
+    public static int apostar(String[][] cartela, long[][] relatorio, int cont) throws Exception {
+        if (cont >= 25) {
+            limparConsole();
+            System.out.println(">> As apostas acabaram, todos os números já foram escolhidos!");
+            sleepTimer();
+            return cont;
+        }
+
         int numero, multiplicador, valorAposta;
         long cpf;
 
@@ -114,11 +128,11 @@ public class jogo_do_bicho {
                     }
                 }
 
-                if (lenCpf <= 10 || lenCpf >= 12) {
+                if (lenCpf != 11) {
                     System.out.println("\n> CPF inválido! Digite um CPF válido.");
                 } else {
                     if (cont >= 2) {
-                        System.out.println("\n> Operaçao falhou! Número máximo de apostas execido para este CPF.");
+                        System.out.println("\n> Operaçao falhou! Número máximo de apostas exercido para este CPF.");
                     } else {
                         return cpf;
                     }
@@ -132,7 +146,7 @@ public class jogo_do_bicho {
     }
 
     // função que que realiza a verificação e validação do numero escolhido:
-    public static int verificaNumero(int[][] cartela) throws Exception {
+    public static int verificaNumero(String[][] cartela) throws Exception {
         int numero, verificador = 0;
 
         while (true) {
@@ -144,26 +158,18 @@ public class jogo_do_bicho {
                 System.out.print("\n> Digite o número que você deseja apostar\n--> ");
                 numero = input.nextInt();
 
-                if (numero < 0 || numero > 25) {
-                    System.out.println("\n> Operaçao falhou! Digite apenas números presentes na cartela.");
-                } else {
+                if (numero > 0 || numero <= 25) {
                     for (int i = 0; i < 5; i++) {
                         for (int j = 0; j < 5; j++) {
-                            if (numero == 0) {
-                                verificador = 0;
-                            } else if (numero == cartela[i][j]) {
-                                cartela[i][j] = 0;
+                            if (String.valueOf(numero).equals(cartela[i][j])) {
+                                cartela[i][j] = "X";
                                 return numero;
-                            } else {
-                                verificador = -1;
-                            }
+                            } else if (String.valueOf(numero).equals(CARTELABACKUP[i][j]) && cartela[i][j] == "X") {
+                                System.out.println("\n> Operaçao falhou! Esse numero já foi escolhido.");
+                            }   
                         }
                     }
-                }
-
-                if (verificador == -1) {
-                    System.out.println("\n> Operaçao falhou! Esse numero já foi escolhido.");
-                } else if (verificador == 0 ) {
+                } else {
                     System.out.println("\n> Operaçao falhou! Digite apenas números presentes na cartela.");
                 }
 
@@ -182,7 +188,8 @@ public class jogo_do_bicho {
             limparConsole();
             try {
                 Scanner input = new Scanner(System.in);
-                System.out.println("<!> Valor da aposta = R$ 2,00 <!>\n> Você pode multiplicar até 5x o valor da aposta <\n");
+                System.out.println(
+                        "<!> Valor da aposta = R$ 2,00 <!>\n> Você pode multiplicar até 5x o valor da aposta <\n");
                 System.out.print("Quantas vezes você quer multiplicar a aposta?\n--> ");
                 multiplicador = input.nextInt();
 
@@ -203,23 +210,28 @@ public class jogo_do_bicho {
     }
 
     // função para o usuario trocar o numero que apostou:
-    public static void trocarNumeroAposta(int[][] cartela, long[][] relatorio, int cont) throws Exception {
-        int numeroEscolhido, novoNumero;
-        long cpf;
-
+    public static void trocarNumeroAposta(String[][] cartela, long[][] relatorio, int cont) throws Exception {
         if (cont == 0) {
             limparConsole();
-            System.out.println("--> Operaçao indisponível! Nenhuma aposta foi realizada ainda.");
+            System.out.println(">> Operaçao indisponível! Nenhuma aposta foi realizada ainda.");
+            sleepTimer();
+            return;
+        } else if (cont >= 25) {
+            limparConsole();
+            System.out.println(">> Operaçao indisponível! Todos os números já foram escolhidos!");
             sleepTimer();
             return;
         }
+
+        int numeroEscolhido, novoNumero;
+        long cpf;
 
         cpf = verificaCpfTrocaAposta(relatorio);
         numeroEscolhido = mostraNumerosVinculadoCpf(cartela, relatorio, cpf);
         novoNumero = novoNumeroAposta(cartela, relatorio, cpf, numeroEscolhido);
 
         limparConsole();
-        System.out.println("\n--> Número trocado com sucesso. Boa sorte!");
+        System.out.println("\n>> Número trocado com sucesso. Boa sorte!");
 
         for (int i = 0; i < 25; i++) {
             for (int j = 0; j < 4; j++) {
@@ -265,7 +277,7 @@ public class jogo_do_bicho {
         }
     }
 
-    public static int mostraNumerosVinculadoCpf(int[][] cartela, long[][] relatorio, long cpf) throws Exception {
+    public static int mostraNumerosVinculadoCpf(String[][] cartela, long[][] relatorio, long cpf) throws Exception {
         limparConsole();
 
         long[] numeros = new long[2];
@@ -315,15 +327,21 @@ public class jogo_do_bicho {
         }
     }
 
-    public static int novoNumeroAposta(int[][] cartela, long[][] relatorio, long cpf, int numeroEscolhido) throws Exception {
+    public static int novoNumeroAposta(String[][] cartela, long[][] relatorio, long cpf, int numeroEscolhido)
+            throws Exception {
         int novoNumero = 0;
 
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
-                if (numeroEscolhido == (cartela[i][j] + 1)) {
-                    cartela[i][j + 1] = numeroEscolhido;
+                if (String.valueOf(numeroEscolhido).equals(CARTELABACKUP[i][j])) {
+                    cartela[i][j] = String.valueOf(numeroEscolhido); // a posição será a mesma nas duas matrizes da cartela.
                     novoNumero = verificaNumero(cartela);
                 }
+
+                // if (numeroEscolhido == Integer.parseInt(cartela[i][j]) + 1) {
+                //     (cartela[i][j + 1]) = String.valueOf(numeroEscolhido);
+                //     novoNumero = verificaNumero(cartela);
+                // }
             }
         }
 
@@ -331,7 +349,7 @@ public class jogo_do_bicho {
     }
 
     // função responsável por exibir a cartela (atualizada) para o usuario:
-    public static void mostrarTabela(int[][] cartela) throws Exception {
+    public static void mostrarTabela(String[][] cartela) throws Exception {
         limparConsole();
         System.out.print("============= TABELA ==============");
         for (int i = 0; i < 5; i++) {
@@ -416,13 +434,16 @@ public class jogo_do_bicho {
         System.out.println("                    *-..:-. :=#                   ");
         System.out.println("                      *=..:+#                     ");
         System.out.println("                        %%                        \n\n");
+        System.out.println("\t\tMEU TRICOLOR AMO VOCE!!!\n\tRUMO AO PRIMEIRO TITULO DA LIBERTADORES!!!\n\n");
+        sleepTimer();
     }
 
     public static void main(String[] args) throws Exception {
         limparConsole();
 
-        int[][] cartela = { { 1, 2, 3, 4, 5 }, { 6, 7, 8, 9, 10 }, { 11, 12, 13, 14, 15 }, { 16, 17, 18, 19, 20 },
-                { 21, 22, 23, 24, 25 } };
+        String[][] cartela = { { "1", "2", "3", "4", "5" }, { "6", "7", "8", "9", "10" },
+                { "11", "12", "13", "14", "15" }, { "16", "17", "18", "19", "20" },
+                { "21", "22", "23", "24", "25" } };
         long[][] relatorioApostas = new long[25][4];
         // 0 = numero | 1 = cpf | 2 = multicplicador | 3 = valorTotal
         int cont = 0;
@@ -433,8 +454,11 @@ public class jogo_do_bicho {
 
             if (opcao == 0) {
                 limparConsole();
-                System.out.println(">> Programa encerrado <<\n\n");
+                System.out.println(">> Programa encerrado..\n\n");
                 florminenC();
+                String url = "https://www.youtube.com/watch?v=S9Um3d8pRZE&ab_channel=golaudio";
+                URI uri = new URI(url);
+                Desktop.getDesktop().browse(uri);
                 break;
             } else if (opcao == 1) {
                 cont = apostar(cartela, relatorioApostas, cont);
